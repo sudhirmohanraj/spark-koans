@@ -28,24 +28,24 @@ class AboutKeyValuePairs extends FunSuite with Matchers with TestSparkContext {
     pairs.mapValues(_ * 2).collectAsMap should be(Map(4 -> 10, 1 -> 14, 1 -> 24, 3 -> 10))
 
     // 'reduceByKey' applies a function to combine values having the same key
-    pairs.reduceByKey(_ + _).collectAsMap should be(Map(4 -> 5, 3 -> 5, 1 -> __))
+    pairs.reduceByKey(_ + _).collectAsMap should be(Map(4 -> 5, 3 -> 5, 1 -> 19))
   }
 
   test("grouping by key") {
     val pairs = sc.parallelize(Array(4 -> 5, 1 -> 7, 1 -> 12, 3 -> 5))
-    pairs.groupByKey.collectAsMap should be(Map(4 -> Seq(__), 1 -> Seq(__, __), 3 -> Seq(__)))
+    pairs.groupByKey.collectAsMap should be(Map(4 -> Seq(5), 1 -> Seq(7, 12), 3 -> Seq(5)))
   }
 
   test("sorting by key") {
     val pairs = sc.parallelize(Array(4 -> 5, 1 -> 7, 1 -> 12, 3 -> 5))
-    pairs.sortByKey().keys.collect should be(Array(__, __, __, __))
+    pairs.sortByKey().keys.collect should be(Array(1, 1, 3, 4))
   }
 
   test("counting words") {
     val words = sc.parallelize(Array("red", "blue", "red", "red", "green", "white", "yellow", "white", "red", "green"))
 
     // Implement a function to count the occurrences of each word, ordering the results alphabetically by word
-    def wordCount(input: RDD[String]): RDD[(String, Int)] = ???
+    def wordCount(input: RDD[String]): RDD[(String, Int)] = words.map(word => (word,1)).reduceByKey((a,b)=>a+b).sortByKey()
 
     val count = wordCount(words)
     count.collectAsMap should be(Map("yellow" -> 1, "red" -> 4, "green" -> 2, "white" -> 2, "blue" -> 1))
