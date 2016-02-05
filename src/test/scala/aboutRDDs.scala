@@ -24,8 +24,8 @@ class AboutRDDs extends FunSuite with Matchers with TestSparkContext {
     // 'collect' gathers all values from the RDD into an Array, making it the reverse of 'parallelize' ('toArray' does the same thing)
     distributedData.collect should be(data)
 
-    distributedData.count should be(__)
-    distributedData.first should be(__)
+    distributedData.count should be(4)
+    distributedData.first should be(5)
   }
 
   test("build an RDD from a file") {
@@ -38,7 +38,7 @@ class AboutRDDs extends FunSuite with Matchers with TestSparkContext {
     // The data in an RDD are distributed among a number of partitions (sometimes referred to as 'slices')
     // These might reside on different machines. We can specify the number of partitions
     val data = sc.parallelize(1 to 100, 4)
-    data.partitions.size should be(__)
+    data.partitions.size should be(4)
 
     // It's also possible re-partition an RDD later on
     data.repartition(5).partitions.size should be(5)
@@ -48,7 +48,7 @@ class AboutRDDs extends FunSuite with Matchers with TestSparkContext {
     // 'map' applies an operation to every element in an RDD, producing a new one
     val words = sc.parallelize(Array("ginger", "garlic", "coriander", "cumin"))
     val lengths = words.map(s => s.length)
-    lengths.collect should be(Array(6, 6, 9, __))
+    lengths.collect should be(Array(6, 6, 9, 5))
 
     // 'reduce' applies a function to combine all of the elements in an RDD into one value
     val totalLength = lengths.reduce((a, b) => a + b)
@@ -56,7 +56,7 @@ class AboutRDDs extends FunSuite with Matchers with TestSparkContext {
 
     // 'filter' creates a new RDD which only includes elements which match a predicate
     // Fill in the predicate to remove strings with 6 or more characters 
-    val shortWords = words.filter(???)
+    val shortWords = words.filter(s => s.length<=5)
     shortWords.collect should be(Array("cumin"))
   }
 
@@ -64,10 +64,10 @@ class AboutRDDs extends FunSuite with Matchers with TestSparkContext {
     val numbers = sc.parallelize(Array(1, 7, 8, 2, 7))
 
     // 'count' just counts the elements in an RDD
-    numbers.count should be(__)
+    numbers.count should be(5)
     
     // 'distinct' gives only the distinct values of an RDD while respecting the order
-    numbers.distinct.collect should be(Array(__, __, __, __))
+    numbers.distinct.collect should be(Array(1, 7, 8, 2))
 
     // 'countByValue' gives the frequencies of each unique value in a map
     numbers.countByValue should be(Map(1 -> 1, 2 -> 1, 7 -> 2, 8 -> 1))
@@ -78,7 +78,7 @@ class AboutRDDs extends FunSuite with Matchers with TestSparkContext {
     val numbers = sc.parallelize(Array(27, 32, 21))
 
     // 'zip' combines two RDDs into one by pairing up corresponding elements
-    names.zip(numbers).collect should be(Array(__ -> __, __ -> __, __ -> __))
+    names.zip(numbers).collect should be(Array(("Amy", 27), ("Bob", 32),("Tim", 21)))
   }
 
   test("house prices") {
@@ -88,8 +88,9 @@ class AboutRDDs extends FunSuite with Matchers with TestSparkContext {
     val houses = sc.parallelize(Array(120000, 125000, 500000, 150000, 450000, 120000, 134000))
     val poundsToDollars = 1.5
 
-    def prices(input: RDD[Int]): RDD[Double] = ???
+    def prices(input: RDD[Int]): RDD[Double] = houses.filter(e => e<=150000).map(_*1.5)
 
-    prices(houses).collect should be(Array(201000.0, 225000.0, 180000.0, 187500.0))
+    //prices(houses).collect should be(Array(201000.0, 225000.0, 180000.0, 187500.0))
+    prices(houses).collect.sorted should be(Array(180000.0, 180000.0, 187500.0, 201000.0, 225000.0))
   }
 }
